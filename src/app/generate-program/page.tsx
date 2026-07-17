@@ -1,9 +1,7 @@
-import React from 'react'
+import { auth } from "@clerk/nextjs/server";
 
-const GenerateProgram = () => {
-  return (
-    <div>GenerateProgram</div>
-  )
+export default async function GenerateProgram() {
+  await auth.protect();
+
+  return <div>GenerateProgram</div>;
 }
-
-export default GenerateProgram
