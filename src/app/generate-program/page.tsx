@@ -21,7 +21,6 @@ export default function GenerateProgram() {
 
   const {user} = useUser();
   const router = useRouter();
-
   const messageContainerRef = useRef<HTMLDivElement>(null);
   //auto scroll messages
   useEffect(()=>{
@@ -123,6 +122,7 @@ export default function GenerateProgram() {
       ? `${user.firstName} ${user.lastName || ""}`.trim()
       : "There";
 
+      console.log("******fullName",fullName, "userId", user?.id);
       await vapi.start(
        process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!,{
         variableValues: {
