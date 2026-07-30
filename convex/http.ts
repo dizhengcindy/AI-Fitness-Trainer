@@ -109,10 +109,14 @@ http.route({
     const payload = await request.json();
     const { age, weight, height, injuries, fitness_goal, workout_days, fitness_level, dietary_restrictions, user_id } = payload;
 
+    if(user_id === "user_id"){
+      throw new Error("User ID is not valid");
+    }
+    
     console.log("payload is here", payload);
     //Gemini to generate program for workout and dietplan
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-lite", 
+      model: "gemini-3.1-flash-lite", 
       generationConfig: {
         temperature: 0.4,//lower temperature means more predictable and deterministic output
         topP: 0.95,
@@ -214,6 +218,8 @@ http.route({
     let dietPlan = JSON.parse(dietPlanText);
     dietPlan = validateDietPlan(dietPlan);
 
+    console.log("workoutPlan", workoutPlan);
+    console.log("dietPlan", dietPlan);
     //save to the database: convex
     const planId = await ctx.runMutation(api.plans.createPlan, {
       userId: user_id,

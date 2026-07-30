@@ -122,12 +122,12 @@ export default function GenerateProgram() {
       ? `${user.firstName} ${user.lastName || ""}`.trim()
       : "There";
 
-      console.log("******fullName",fullName, "userId", user?.id);
+      console.log("******fullName",fullName, "userId", user?.id ?? "no-valid-user-id");
       await vapi.start(
        process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!,{
         variableValues: {
           full_name: fullName,
-          user_id: user?.id,
+          user_id: user?.id ?? "no-valid-user-id",
         },
       }
     );
