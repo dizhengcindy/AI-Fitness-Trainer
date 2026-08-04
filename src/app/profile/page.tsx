@@ -19,9 +19,12 @@ import {
 
 const ProfilePage = () => {
   const { user } = useUser();
-  const userId = user?.id as string;
+  const userId = user?.id;
 
-  const allPlans = useQuery(api.plans.getUserPlans, { userId });
+  const allPlans = useQuery(
+    api.plans.getUserPlans,
+    userId ? { userId } : "skip"
+  );
   const [selectedPlanId, setSelectedPlanId] = useState<null | string>(null);
 
   const activePlan = allPlans?.find((plan) => plan.isActive);
@@ -31,7 +34,7 @@ const ProfilePage = () => {
     : activePlan;
 
   return (
-    <section className="relative z-10 pt-12 pb-32 flex-grow container mx-auto px-4">
+    <section className="relative z-10 pt-12 pb-32 grow container mx-auto px-4">
       <ProfileHeader user={user} />
 
       {allPlans && allPlans?.length > 0 ? (
