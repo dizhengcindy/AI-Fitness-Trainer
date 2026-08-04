@@ -22,6 +22,31 @@ export default function GenerateProgram() {
   const {user} = useUser();
   const router = useRouter();
   const messageContainerRef = useRef<HTMLDivElement>(null);
+
+   // SOLUTION to get rid of "Meeting has ended" error
+   useEffect(() => {
+    const originalError = console.error;
+    // override console.error to ignore "Meeting has ended" errors
+    console.error = function (msg, ...args) {
+      if (
+        msg &&
+        (msg.includes("Meeting has ended") ||
+          (args[0] && args[0].toString().includes("Meeting has ended")))
+      ) {
+        console.log("Ignoring known error: Meeting has ended");
+        return; // don't pass to original handler
+      }
+
+      // pass all other errors to the original handler
+      return originalError.call(console, msg, ...args);
+    };
+
+    // restore original handler on unmount
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
+  
   //auto scroll messages
   useEffect(()=>{
     if(messageContainerRef.current){
@@ -192,7 +217,7 @@ export default function GenerateProgram() {
               />
 
               <div className="relative w-full h-full rounded-full bg-card flex items-center justify-center border border-border overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-secondary/10"></div>
+                <div className="absolute inset-0 bg-linear-to-b from-primary/10 to-secondary/10"></div>
                 <img
                   src="/ai-avatar.png"
                   alt="AI Assistant"
