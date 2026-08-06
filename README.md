@@ -8,7 +8,8 @@ Talk to an AI coach about your goals, experience, injuries, and dietary needs. G
 
 - **Voice intake** — Real-time conversation with a Vapi AI assistant to collect fitness goals and constraints
 - **Personalized plans** — Gemini generates workout schedules (sets/reps by day) and meal plans with calorie targets
-- **User profiles** — View active and past plans after signing in with Clerk
+- **User profiles** — Browse active and past plans; switch between workout and diet views
+- **Auth sync** — Clerk sign-in with webhooks that create/update users in Convex
 - **Public program examples** — Landing page showcases sample user programs
 
 ## Stack
@@ -16,7 +17,7 @@ Talk to an AI coach about your goals, experience, injuries, and dietary needs. G
 | Layer | Tech |
 | --- | --- |
 | Frontend | Next.js 15 (App Router), React 19, Tailwind CSS 4, shadcn/ui |
-| Auth | Clerk (JWT + `user.created` webhook via Svix) |
+| Auth | Clerk (JWT + Svix webhooks) |
 | Backend / DB | Convex |
 | Voice AI | Vapi |
 | Plan generation | Google Gemini |
@@ -75,7 +76,17 @@ Point a Clerk webhook at your Convex HTTP endpoint:
 https://<your-deployment>.convex.site/clerk-webhook
 ```
 
-Subscribe to `user.created` so new sign-ups sync into the Convex `users` table.
+Subscribe to `user.created` and `user.updated` so sign-ups and profile changes sync into the Convex `users` table.
+
+### Vapi tool URL
+
+Configure the Vapi assistant tool to POST intake data to:
+
+```
+https://<your-deployment>.convex.site/vapi/generate-program
+```
+
+That endpoint runs Gemini, validates the JSON plan shape, saves it via `plans.createPlan`, and returns the result.
 
 ### Run locally
 
@@ -88,10 +99,20 @@ npm run dev          # Next.js on http://localhost:3000
 
 ## How it works
 
-1. User signs in with Clerk → webhook syncs them to Convex.
-2. On `/generate-program`, the client starts a Vapi voice call with the configured assistant.
-3. When the call ends, a Convex HTTP action uses Gemini to produce a workout + diet plan.
-4. The plan is stored in Convex (`plans`) and shown on `/profile`. Creating a new plan deactivates previous ones.
+1. User signs in with Clerk → webhook syncs them to Convex (`users` table).
+2. On `/generate-program`, the client starts a Vapi voice call and passes `user_id` / `full_name`.
+3. During the call, Vapi posts collected fields (age, goals, injuries, etc.) to `/vapi/generate-program`.
+4. Gemini produces a workout + diet plan; Convex stores it in `plans` (previous active plans are deactivated).
+5. After the call ends, the user is redirected to `/profile` to view the plan.
+
+## Routes
+
+| Path | Description |
+| --- | --- |
+| `/` | Landing page + sample programs |
+| `/sign-in`, `/sign-up` | Clerk auth |
+| `/generate-program` | Voice call UI to create a plan |
+| `/profile` | Active/past plans with workout & diet tabs |
 
 ## Project structure
 
@@ -100,13 +121,14 @@ src/
   app/                    # Routes: home, auth, generate-program, profile
   components/             # Navbar, Footer, profile UI, landing sections
   components/ui/          # shadcn primitives
+  constants/              # Sample program data for the landing page
   lib/                    # Vapi client, utils
   providers/              # Convex + Clerk provider
   middleware.ts           # Clerk middleware
 convex/
   schema.ts               # users + plans tables
-  users.ts                # User sync mutation
-  plans.ts                # Create / list plans
+  users.ts                # syncUser / updateUser
+  plans.ts                # createPlan / getUserPlans
   http.ts                 # Clerk webhook + Gemini plan generation
   auth.config.ts          # Clerk JWT validation for Convex
 ```
