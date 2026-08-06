@@ -4,6 +4,8 @@ Voice-first AI fitness trainer that builds personalized workout and diet program
 
 Talk to an AI coach about your goals, experience, injuries, and dietary needs. Gemini turns that intake into a structured plan, which is saved to your profile and ready to follow.
 
+**Production:** [https://ai-fitness-trainer-weld.vercel.app/](https://ai-fitness-trainer-weld.vercel.app/)
+
 ## Features
 
 - **Voice intake** — Real-time conversation with a Vapi AI assistant to collect fitness goals and constraints
